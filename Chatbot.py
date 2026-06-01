@@ -4,18 +4,18 @@ import streamlit as st
 # Sayfa Ayarları
 st.set_page_config(page_title="Ask Our AI Everything", page_icon="✨", layout="centered")
 
-# Tüm temalarla uyumlu CSS + Otomatik gelen sayfa menüsünü gizleme kodu
+# Yan menüyü ve butonları ana temayla %100 uyumlu yapan güncel CSS
 st.markdown("""
     <style>
     /* Üst boşlukları ve genişliği optimize et */
     .block-container { padding-top: 4rem; max-width: 800px; }
     
-    /* ---- CRITICAL: Streamlit'in otomatik oluşturduğu sol menüyü gizler ---- */
+    /* Streamlit'in otomatik oluşturduğu sol menüyü gizler */
     [data-testid="stSidebarNav"] {
         display: none !important;
     }
     
-    /* Öneri butonlarını mevcut temaya (Açık/Koyu) otomatik uydur */
+    /* ANA EKRANDAKİ Öneri butonlarını mevcut temaya otomatik uydur */
     div.stButton > button {
         background-color: rgba(128, 128, 128, 0.08);
         color: inherit;
@@ -28,11 +28,26 @@ st.markdown("""
         width: 100%;
         min-height: 70px;
     }
-    
-    /* Butona hover olunca temanın ana rengine göre hafifçe parla */
     div.stButton > button:hover {
         background-color: rgba(128, 128, 128, 0.15);
         border-color: rgba(128, 128, 128, 0.3);
+    }
+    
+    /* ---- SIDEBAR BUTONUNU TEMAYA UYARLAMA ---- */
+    /* Yan menüdeki butonun arka planını ve çizgilerini sistemle eşitle */
+    section[data-testid="stSidebar"] div.stButton > button {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        color: inherit !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        text-align: center !important;
+        border-radius: 8px !important;
+        min-height: auto !important;
+        padding: 8px 16px !important;
+    }
+    /* Yan menü butonu hover efekti */
+    section[data-testid="stSidebar"] div.stButton > button:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        border-color: rgba(255, 255, 255, 0.2) !important;
     }
     
     /* Başlıkların ortalanması */
