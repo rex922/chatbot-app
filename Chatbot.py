@@ -178,9 +178,13 @@ with st.sidebar:
                 if metin and metin.strip():
                     parcalar.append(metin.strip())
             
-            st.session_state["rag_model"].fit(parcalar)
-            st.success(f"Başarılı: {len(parcalar)} sayfa özel modele eğitildi!")
-            
+            if "son_yuklenen_dosya" not in st.session_state or st.session_state["son_yuklenen_dosya"] != yuklenen_dosya.name:
+                st.session_state["son_yuklenen_dosya"] = yuklenen_dosya.name
+                st.session_state["messages"] = []
+                st.session_state["rag_model"] = RetrievalBasedNLPModel()
+                st.session_state["rag_model"].fit(parcalar)
+                st.rerun()
+                
             with st.expander("📊 Model Öznitelik Boyutu (Kelime Havuzu)"):
                 st.caption(f"Toplam Özgün Kelime Sayısı (Vektör Boyutu): {len(st.session_state['rag_model'].kelime_havuzu)}")
                 st.code(", ".join(st.session_state["rag_model"].kelime_havuzu[:50]) + "...")
@@ -191,6 +195,8 @@ with st.sidebar:
     st.markdown("---")
     if st.button("🔄 Sohbeti Sıfırla", use_container_width=True):
         st.session_state["messages"] = []
+        if "son_yuklenen_dosya" in st.session_state:
+            del st.session_state["son_yuklenen_dosya"]
         st.session_state["rag_model"] = RetrievalBasedNLPModel()
         st.rerun()
 
