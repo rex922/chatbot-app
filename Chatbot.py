@@ -4,29 +4,38 @@ import streamlit as st
 # Sayfa Ayarları
 st.set_page_config(page_title="Ask Our AI Everything", page_icon="✨", layout="centered")
 
-# Görseldeki minimalist tasarımı yakalamak için özel CSS (Hatalı parametre düzeltildi)
+# Hem Koyu hem Açık temaya dinamik uyum sağlayan akıllı CSS
 st.markdown("""
     <style>
-    /* Üst boşlukları ve gereksiz Streamlit elementlerini gizleme/düzenleme */
-    .block-container { padding-top: 5rem; max-width: 800px; }
+    /* Üst boşlukları ve genişliği optimize et */
+    .block-container { padding-top: 4rem; max-width: 800px; }
     
-    /* Öneri butonlarının stilini özelleştirme */
+    /* Öneri butonlarını mevcut temaya (Açık/Koyu) otomatik uydur */
     div.stButton > button {
-        background-color: #f0f2f6;
-        color: #31333F;
-        border: 1px solid transparent;
-        border-radius: 10px;
-        padding: 10px 15px;
+        background-color: rgba(128, 128, 128, 0.08);
+        color: inherit;
+        border: 1px solid rgba(128, 128, 128, 0.15);
+        border-radius: 12px;
+        padding: 12px 18px;
         font-size: 14px;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
         text-align: left;
         width: 100%;
-        min-height: 60px;
+        min-height: 70px;
     }
+    
+    /* Butona hover olunca temanın ana rengine göre hafifçe parla */
     div.stButton > button:hover {
-        background-color: #e4e7eb;
-        border-color: #cbd5e1;
-        color: #1e293b;
+        background-color: rgba(128, 128, 128, 0.15);
+        border-color: rgba(128, 128, 128, 0.3);
+    }
+    
+    /* Başlıkların ortalanması */
+    .centered-title {
+        text-align: center;
+        font-weight: 400;
+        margin-top: 10px;
+        margin-bottom: 40px;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -35,9 +44,11 @@ st.markdown("""
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
 
-# Yan Menü (Sidebar) - API Anahtarı Girişi
+# --- YAN MENÜ (SIDEBAR) ---
+# Sadece Yapılandırma ve Temizleme butonları bırakıldı
 with st.sidebar:
     st.title("⚙️ Yapılandırma")
+    
     openai_api_key = st.text_input(
         "OpenAI API Key", 
         key="chatbot_api_key", 
@@ -52,17 +63,17 @@ with st.sidebar:
     )
     
     st.markdown("---")
-    if st.button("🔄 Sohbeti Sıfırla"):
+    if st.button("🔄 Sohbeti Sıfırla", use_container_width=True):
         st.session_state["messages"] = []
         st.rerun()
 
 # --- ANA EKRAN TASARIMI ---
 
-# Eğer henüz hiç mesaj yazılmadıysa Karşılama Ekranını göster
+# Eğer sohbet geçmişi yoksa minimalist karşılama ekranını göster
 if len(st.session_state["messages"]) == 0:
     st.markdown("<h1 style='text-align: center; font-size: 45px; margin-bottom: 0;'>✨</h1>", unsafe_allow_html=True)
-    st.markdown("<h2 style='text-align: center; font-weight: 400; color: #222; margin-top: 10px; margin-bottom: 50px;'>Ask our AI anything</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='color: #666; font-size: 14px; margin-bottom: 10px;'>Suggestions on what to ask Our AI</p>", unsafe_allow_html=True)
+    st.markdown("<h2 class='centered-title'>Ask our AI anything</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='opacity: 0.7; font-size: 14px; margin-bottom: 12px;'>Suggestions on what to ask Our AI</p>", unsafe_allow_html=True)
     
     # 3 adet öneri butonu
     col1, col2, col3 = st.columns(3)
@@ -82,7 +93,7 @@ if len(st.session_state["messages"]) == 0:
             st.session_state["messages"].append({"role": "user", "content": "What projects should I be concerned about right now?"})
             st.rerun()
 
-# Eğer mesaj geçmişi varsa eski mesajları ekrana dök
+# Eğer mesaj geçmişi varsa mesajları ekrana dök
 else:
     for msg in st.session_state.messages:
         avatar = "✨" if msg["role"] == "assistant" else "🧑‍💻"
@@ -98,7 +109,7 @@ if prompt := st.chat_input("Ask me anything about your projects"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.rerun()
 
-# API Yanıt Tetikleme Mekanizması (Sonsuz rerun döngüsü engellendi)
+# API Yanıt Mekanizması
 if len(st.session_state["messages"]) > 0 and st.session_state["messages"][-1]["role"] == "user":
     client = OpenAI(api_key=openai_api_key)
     
