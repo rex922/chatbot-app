@@ -4,13 +4,13 @@ import streamlit as st
 # Sayfa Ayarları
 st.set_page_config(page_title="Ask Our AI Everything", page_icon="✨", layout="centered")
 
-# %100 Temaya Uyumlu ve İnatçı Çerçeveleri Kıran Gelişmiş CSS
+# Temaya tam uyum sağlayan kurumsal CSS mimarisi
 st.markdown("""
     <style>
     /* Üst boşlukları ve genel sayfa genişliğini optimize et */
     .block-container { padding-top: 4rem; max-width: 800px; }
     
-    /* Streamlit'in otomatik oluşturduğu sol menüyü gizler */
+    /* Streamlit'in otomatik oluşturduğu sol navigasyon menüsünü gizler */
     [data-testid="stSidebarNav"] {
         display: none !important;
     }
@@ -33,26 +33,28 @@ st.markdown("""
         border-color: rgba(128, 128, 128, 0.3);
     }
     
-    /* ---- SIDEBAR BUTONUNU %100 MODERN YAPMA ---- */
-    /* Yan menüdeki butonun o inatçı koyu gri katmanını ve sınır çizgilerini tamamen sıfırla */
+    /* ---- SIDEBAR BUTONUNU INPUT KUTULARIYLA %100 EŞİTLEME ---- */
+    /* Yan menüdeki butonun arka planını, yazı rengini ve kenarlıklarını sistem inputlarıyla eşitle */
     div[data-testid="stSidebarUserContent"] div.stButton > button {
-        background-color: rgba(128, 128, 128, 0.1) !important;
+        background-color: rgba(128, 128, 128, 0.08) !important;
         color: inherit !important;
-        border: 1px solid rgba(128, 128, 128, 0.15) !important;
-        border-radius: 10px !important;
+        border: 1px solid rgba(128, 128, 128, 0.2) !important;
+        border-radius: 8px !important;
         padding: 10px 16px !important;
         font-size: 14px !important;
+        font-weight: 500 !important;
         text-align: center !important;
         width: 100% !important;
         min-height: auto !important;
         box-shadow: none !important;
-        transition: all 0.2s ease-in-out !important;
+        transition: all 0.2s ease !important;
     }
     
     /* Yan menü butonu hover (üzerine gelme) efekti */
     div[data-testid="stSidebarUserContent"] div.stButton > button:hover {
-        background-color: rgba(128, 128, 128, 0.18) !important;
-        border-color: rgba(128, 128, 128, 0.3) !important;
+        background-color: rgba(128, 128, 128, 0.15) !important;
+        border-color: rgba(128, 128, 128, 0.4) !important;
+        color: inherit !important;
     }
     
     /* Başlıkların ortalanması */
@@ -88,7 +90,7 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Yerel Streamlit butonu, yukarıdaki CSS sayesinde artık tamamen şeffaf ve temaya uygun!
+    # Yukarıdaki yeni CSS seçicileri ile artık tamamen yerel temayla bütünleşti
     if st.button("🔄 Sohbeti Sıfırla", use_container_width=True):
         st.session_state["messages"] = []
         st.rerun()
