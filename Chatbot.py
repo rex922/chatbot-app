@@ -60,7 +60,6 @@ class RetrievalBasedNLPModel:
     def fit(self, ham_sayfalar):
         self.orijinal_sayfalar = ham_sayfalar
         self.dokumanlar = ham_sayfalar
-        
         if ham_sayfalar:
             _, _, kelimeler = custom_tfidf_vektorize(ham_sayfalar, "")
             self.kelime_havuzu = kelimeler
@@ -141,7 +140,6 @@ st.markdown("""
     }
     .centered-title { text-align: center; font-weight: 400; margin-top: 10px; margin-bottom: 40px; }
     
-    /* Skor göstergeleri için şık metrik kutu tasarımı */
     .metric-container {
         display: flex;
         gap: 10px;
@@ -183,7 +181,6 @@ with st.sidebar:
             st.session_state["rag_model"].fit(parcalar)
             st.success(f"Başarılı: {len(parcalar)} sayfa özel modele eğitildi!")
             
-            # 🔥 1. EKSİK: MODELİN KELİME HAVUZUNU SİDEBARDA GÖSTERME (HOCAYI BİTİREN KISIM)
             with st.expander("📊 Model Öznitelik Boyutu (Kelime Havuzu)"):
                 st.caption(f"Toplam Özgün Kelime Sayısı (Vektör Boyutu): {len(st.session_state['rag_model'].kelime_havuzu)}")
                 st.code(", ".join(st.session_state["rag_model"].kelime_havuzu[:50]) + "...")
@@ -218,7 +215,6 @@ if len(st.session_state["messages"]) == 0:
 
 else:
     for msg in st.session_state.messages:
-        # Eğer mesaj bir skor/analiz objesiyse ekrana özel expander basıyoruz, normal mesajları normal yazdırıyoruz
         if msg["role"] == "system_analysis":
             with st.expander("🔍 Matematiksel Analiz & Kosinüs Benzerliği Skorları"):
                 html_metrics = "<div class='metric-container'>"
@@ -242,12 +238,10 @@ if len(st.session_state["messages"]) > 0 and st.session_state["messages"][-1]["r
     client = OpenAI(api_key=openai_api_key)
     kullanici_sorusu = st.session_state["messages"][-1]["content"]
     
-    # 🔥 2. EKSİK: RETRIEVE ARTIK SKORLARI DA DÖNDÜRÜYOR
     en_iyi_sonuclar = st.session_state["rag_model"].retrieve(kullanici_sorusu, en_yakin_k_sayfa=3)
     
     baglam = ""
     if en_iyi_sonuclar:
-        # Mesaj geçmişine analiz rolünde skorları kaydediyoruz ki ekranda render edilsin
         st.session_state.messages.append({"role": "system_analysis", "content": en_iyi_sonuclar})
         baglam = "\n\n".join([f"[Sayfa {d['sayfa_no']}] {d['metin']}" for d in en_iyi_sonuclar])
 
@@ -264,7 +258,7 @@ if len(st.session_state["messages"]) > 0 and st.session_state["messages"][-1]["r
         api_mesajlari.append({"role": "system", "content": "Sen yardımcı ve modern bir yapay zekâ asistanısın."})
         
     for msg in st.session_state.messages:
-        if msg["role"] != "system_analysis": # API'ye istatistiksel mesajları göndermiyoruz
+        if msg["role"] != "system_analysis":
             api_mesajlari.append({"role": msg["role"], "content": msg["content"]})
         
     with st.chat_message("assistant", avatar="✨"):
