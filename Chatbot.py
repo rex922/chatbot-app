@@ -4,11 +4,16 @@ import streamlit as st
 # Sayfa Ayarları
 st.set_page_config(page_title="Ask Our AI Everything", page_icon="✨", layout="centered")
 
-# Hem Koyu hem Açık temaya dinamik uyum sağlayan akıllı CSS
+# Tüm temalarla uyumlu CSS + Otomatik gelen sayfa menüsünü gizleme kodu
 st.markdown("""
     <style>
     /* Üst boşlukları ve genişliği optimize et */
     .block-container { padding-top: 4rem; max-width: 800px; }
+    
+    /* ---- CRITICAL: Streamlit'in otomatik oluşturduğu sol menüyü gizler ---- */
+    [data-testid="stSidebarNav"] {
+        display: none !important;
+    }
     
     /* Öneri butonlarını mevcut temaya (Açık/Koyu) otomatik uydur */
     div.stButton > button {
@@ -45,7 +50,6 @@ if "messages" not in st.session_state:
     st.session_state["messages"] = []
 
 # --- YAN MENÜ (SIDEBAR) ---
-# Sadece Yapılandırma ve Temizleme butonları bırakıldı
 with st.sidebar:
     st.title("⚙️ Yapılandırma")
     
@@ -68,14 +72,11 @@ with st.sidebar:
         st.rerun()
 
 # --- ANA EKRAN TASARIMI ---
-
-# Eğer sohbet geçmişi yoksa minimalist karşılama ekranını göster
 if len(st.session_state["messages"]) == 0:
     st.markdown("<h1 style='text-align: center; font-size: 45px; margin-bottom: 0;'>✨</h1>", unsafe_allow_html=True)
     st.markdown("<h2 class='centered-title'>Ask our AI anything</h2>", unsafe_allow_html=True)
     st.markdown("<p style='opacity: 0.7; font-size: 14px; margin-bottom: 12px;'>Suggestions on what to ask Our AI</p>", unsafe_allow_html=True)
     
-    # 3 adet öneri butonu
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -93,7 +94,6 @@ if len(st.session_state["messages"]) == 0:
             st.session_state["messages"].append({"role": "user", "content": "What projects should I be concerned about right now?"})
             st.rerun()
 
-# Eğer mesaj geçmişi varsa mesajları ekrana dök
 else:
     for msg in st.session_state.messages:
         avatar = "✨" if msg["role"] == "assistant" else "🧑‍💻"
@@ -101,7 +101,6 @@ else:
 
 # --- SOHBET GİRİŞ ALANI ---
 if prompt := st.chat_input("Ask me anything about your projects"):
-    
     if not openai_api_key:
         st.info("Lütfen devam etmek için sol menüden (Sidebar) OpenAI API anahtarınızı girin.")
         st.stop()
