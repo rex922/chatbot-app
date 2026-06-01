@@ -4,7 +4,7 @@ import streamlit as st
 # Sayfa Ayarları
 st.set_page_config(page_title="Ask Our AI Everything", page_icon="✨", layout="centered")
 
-# Görseldeki minimalist tasarımı yakalamak için özel CSS
+# Görseldeki minimalist tasarımı yakalamak için özel CSS (Hatalı parametre düzeltildi)
 st.markdown("""
     <style>
     /* Üst boşlukları ve gereksiz Streamlit elementlerini gizleme/düzenleme */
@@ -29,7 +29,7 @@ st.markdown("""
         color: #1e293b;
     }
     </style>
-""", unsafe_style=True)
+""", unsafe_allow_html=True)
 
 # Hafıza (Session State) Tanımlamaları
 if "messages" not in st.session_state:
@@ -58,15 +58,13 @@ with st.sidebar:
 
 # --- ANA EKRAN TASARIMI ---
 
-# Eğer henüz hiç mesaj yazılmadıysa görseldeki Karşılama Ekranını göster
+# Eğer henüz hiç mesaj yazılmadıysa Karşılama Ekranını göster
 if len(st.session_state["messages"]) == 0:
-    # Üst Logo ve Başlık (Görseldeki gibi ortalanmış)
-    st.markdown("<h1 style='text-align: center; font-size: 45px; margin-bottom: 0;'>✨</h1>", unsafe_style=True)
-    st.markdown("<h2 style='text-align: center; font-weight: 400; color: #222; margin-top: 10px; margin-bottom: 50px;'>Ask our AI anything</h2>", unsafe_style=True)
+    st.markdown("<h1 style='text-align: center; font-size: 45px; margin-bottom: 0;'>✨</h1>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center; font-weight: 400; color: #222; margin-top: 10px; margin-bottom: 50px;'>Ask our AI anything</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #666; font-size: 14px; margin-bottom: 10px;'>Suggestions on what to ask Our AI</p>", unsafe_allow_html=True)
     
-    st.markdown("<p style='color: #666; font-size: 14px; margin-bottom: 10px;'>Suggestions on what to ask Our AI</p>", unsafe_style=True)
-    
-    # Görseldeki 3 adet öneri butonu (Yan yana sütunlar halinde)
+    # 3 adet öneri butonu
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -84,34 +82,26 @@ if len(st.session_state["messages"]) == 0:
             st.session_state["messages"].append({"role": "user", "content": "What projects should I be concerned about right now?"})
             st.rerun()
 
-# Eğer mesaj geçmişi varsa eski mesajları ekrana dök (Karşılama ekranı kaybolur)
+# Eğer mesaj geçmişi varsa eski mesajları ekrana dök
 else:
     for msg in st.session_state.messages:
         avatar = "✨" if msg["role"] == "assistant" else "🧑‍💻"
         st.chat_message(msg["role"], avatar=avatar).write(msg["content"])
 
-# --- SOHBET GİRİŞ ALANI (Chat Input) ---
-# Görseldeki "Ask me anything about your projects" placeholder'ı ile alt giriş alanı
+# --- SOHBET GİRİŞ ALANI ---
 if prompt := st.chat_input("Ask me anything about your projects"):
     
-    # API Anahtarı Kontrolü
     if not openai_api_key:
         st.info("Lütfen devam etmek için sol menüden (Sidebar) OpenAI API anahtarınızı girin.")
         st.stop()
         
-    # Eğer ilk mesaj öneri butonlarından gelmediyse, normal girdiyi ekle
-    if len(st.session_state["messages"]) == 0 or st.session_state["messages"][-1]["content"] != prompt:
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        st.rerun()
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.rerun()
 
-# API Yanıt Tetikleme Mekanizması
+# API Yanıt Tetikleme Mekanizması (Sonsuz rerun döngüsü engellendi)
 if len(st.session_state["messages"]) > 0 and st.session_state["messages"][-1]["role"] == "user":
     client = OpenAI(api_key=openai_api_key)
     
-    # Ekranı en son mesaja göre güncellemek için yeniden çiziyoruz
-    st.rerun() if len(st.session_state["messages"]) == 1 else None 
-
-    # Asistan yanıt alanı
     with st.chat_message("assistant", avatar="✨"):
         message_placeholder = st.empty()
         full_response = ""
