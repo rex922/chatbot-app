@@ -1,21 +1,26 @@
 from openai import OpenAI
 import streamlit as st
 
-# Sayfa Ayarları
-st.set_page_config(page_title="Ask Our AI Everything", page_icon="✨", layout="centered")
+# Sayfa Ayarları - Sol menü başlangıçta KAPALI (collapsed) olarak ayarlandı!
+st.set_page_config(
+    page_title="Ask Our AI Everything", 
+    page_icon="✨", 
+    layout="centered",
+    initial_sidebar_state="collapsed"
+)
 
-# Temaya tam uyum sağlayan kurumsal CSS mimarisi
+# Temaya %100 entegre olan ve inatçı renkleri sisteme eşitleyen CSS
 st.markdown("""
     <style>
     /* Üst boşlukları ve genel sayfa genişliğini optimize et */
     .block-container { padding-top: 4rem; max-width: 800px; }
     
-    /* Streamlit'in otomatik oluşturduğu sol navigasyon menüsünü gizler */
+    /* Streamlit'in otomatik oluşturduğu sol navigasyon linklerini gizler */
     [data-testid="stSidebarNav"] {
         display: none !important;
     }
     
-    /* ANA EKRANDAKİ Öneri butonlarını mevcut temaya otomatik uydur */
+    /* ---- ANA EKRAN: Öneri butonları ---- */
     div.stButton > button {
         background-color: rgba(128, 128, 128, 0.08);
         color: inherit;
@@ -33,11 +38,17 @@ st.markdown("""
         border-color: rgba(128, 128, 128, 0.3);
     }
     
-    /* ---- SIDEBAR BUTONUNU INPUT KUTULARIYLA %100 EŞİTLEME ---- */
-    /* Yan menüdeki butonun arka planını, yazı rengini ve kenarlıklarını sistem inputlarıyla eşitle */
+    /* ---- SIDEBAR PANELİ VE İÇERİK RENK UYUMU ---- */
+    /* Sol panelin kendi arka plan rengini ve yazı rengini sistem temasına zorla eşitle */
+    section[data-testid="stSidebar"] {
+        background-color: var(--background-color) !important;
+        color: var(--text-color) !important;
+    }
+    
+    /* Yan menüdeki "Sohbeti Sıfırla" butonunu sistem temasıyla tamamen eşitle */
     div[data-testid="stSidebarUserContent"] div.stButton > button {
         background-color: rgba(128, 128, 128, 0.08) !important;
-        color: inherit !important;
+        color: var(--text-color) !important;
         border: 1px solid rgba(128, 128, 128, 0.2) !important;
         border-radius: 8px !important;
         padding: 10px 16px !important;
@@ -54,7 +65,6 @@ st.markdown("""
     div[data-testid="stSidebarUserContent"] div.stButton > button:hover {
         background-color: rgba(128, 128, 128, 0.15) !important;
         border-color: rgba(128, 128, 128, 0.4) !important;
-        color: inherit !important;
     }
     
     /* Başlıkların ortalanması */
@@ -90,7 +100,7 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Yukarıdaki yeni CSS seçicileri ile artık tamamen yerel temayla bütünleşti
+    # Tamamen sistem renk değişkenlerine bağlanan buton
     if st.button("🔄 Sohbeti Sıfırla", use_container_width=True):
         st.session_state["messages"] = []
         st.rerun()
