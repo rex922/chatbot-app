@@ -1,26 +1,21 @@
 from openai import OpenAI
 import streamlit as st
 
-# Sayfa Ayarları - Sol menü başlangıçta KAPALI (collapsed) olarak ayarlandı!
 st.set_page_config(
-    page_title="Ask Our AI Everything", 
+    page_title="Yapay Zekamıza Her Şeyi Sorun", 
     page_icon="✨", 
     layout="centered",
     initial_sidebar_state="collapsed"
 )
 
-# Temaya %100 entegre olan ve inatçı renkleri sisteme eşitleyen CSS
 st.markdown("""
     <style>
-    /* Üst boşlukları ve genel sayfa genişliğini optimize et */
     .block-container { padding-top: 4rem; max-width: 800px; }
     
-    /* Streamlit'in otomatik oluşturduğu sol navigasyon linklerini gizler */
     [data-testid="stSidebarNav"] {
         display: none !important;
     }
     
-    /* ---- ANA EKRAN: Öneri butonları ---- */
     div.stButton > button {
         background-color: rgba(128, 128, 128, 0.08);
         color: inherit;
@@ -38,14 +33,11 @@ st.markdown("""
         border-color: rgba(128, 128, 128, 0.3);
     }
     
-    /* ---- SIDEBAR PANELİ VE İÇERİK RENK UYUMU ---- */
-    /* Sol panelin kendi arka plan rengini ve yazı rengini sistem temasına zorla eşitle */
     section[data-testid="stSidebar"] {
         background-color: var(--background-color) !important;
         color: var(--text-color) !important;
     }
     
-    /* Yan menüdeki "Sohbeti Sıfırla" butonunu sistem temasıyla tamamen eşitle */
     div[data-testid="stSidebarUserContent"] div.stButton > button {
         background-color: rgba(128, 128, 128, 0.08) !important;
         color: var(--text-color) !important;
@@ -61,13 +53,11 @@ st.markdown("""
         transition: all 0.2s ease !important;
     }
     
-    /* Yan menü butonu hover (üzerine gelme) efekti */
     div[data-testid="stSidebarUserContent"] div.stButton > button:hover {
         background-color: rgba(128, 128, 128, 0.15) !important;
         border-color: rgba(128, 128, 128, 0.4) !important;
     }
     
-    /* Başlıkların ortalanması */
     .centered-title {
         text-align: center;
         font-weight: 400;
@@ -77,16 +67,14 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Hafıza (Session State) Tanımlamaları
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
 
-# --- YAN MENÜ (SIDEBAR) ---
 with st.sidebar:
     st.title("⚙️ Yapılandırma")
     
     openai_api_key = st.text_input(
-        "OpenAI API Key", 
+        "OpenAI API Anahtarı", 
         key="chatbot_api_key", 
         type="password",
         placeholder="sk-..."
@@ -100,32 +88,30 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Tamamen sistem renk değişkenlerine bağlanan buton
     if st.button("🔄 Sohbeti Sıfırla", use_container_width=True):
         st.session_state["messages"] = []
         st.rerun()
 
-# --- ANA EKRAN TASARIMI ---
 if len(st.session_state["messages"]) == 0:
     st.markdown("<h1 style='text-align: center; font-size: 45px; margin-bottom: 0;'>✨</h1>", unsafe_allow_html=True)
-    st.markdown("<h2 class='centered-title'>Ask our AI anything</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='opacity: 0.7; font-size: 14px; margin-bottom: 12px;'>Suggestions on what to ask Our AI</p>", unsafe_allow_html=True)
+    st.markdown("<h2 class='centered-title'>Yapay zekamıza her şeyi sorun</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='opacity: 0.7; font-size: 14px; margin-bottom: 12px;'>Yapay Zekamıza ne sorabileceğinize dair öneriler</p>", unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        if st.button("What can I ask you to do?"):
-            st.session_state["messages"].append({"role": "user", "content": "What can I ask you to do?"})
+        if st.button("Senden neler yapmanı isteyebilirim?"):
+            st.session_state["messages"].append({"role": "user", "content": "Senden neler yapmanı isteyebilirim?"})
             st.rerun()
             
     with col2:
-        if st.button("Which one of my projects is performing the best?"):
-            st.session_state["messages"].append({"role": "user", "content": "Which one of my projects is performing the best?"})
+        if st.button("Projelerimden hangisi en iyi performansı gösteriyor?"):
+            st.session_state["messages"].append({"role": "user", "content": "Projelerimden hangisi en iyi performansı gösteriyor?"})
             st.rerun()
             
     with col3:
-        if st.button("What projects should I be concerned about right now?"):
-            st.session_state["messages"].append({"role": "user", "content": "What projects should I be concerned about right now?"})
+        if st.button("Şu anda hangi projeler konusunda endişelenmeliyim?"):
+            st.session_state["messages"].append({"role": "user", "content": "Şu anda hangi projeler konusunda endişelenmeliyim?"})
             st.rerun()
 
 else:
@@ -133,8 +119,7 @@ else:
         avatar = "✨" if msg["role"] == "assistant" else "🧑‍💻"
         st.chat_message(msg["role"], avatar=avatar).write(msg["content"])
 
-# --- SOHBET GİRİŞ ALANI ---
-if prompt := st.chat_input("Ask me anything about your projects"):
+if prompt := st.chat_input("Projeleriniz hakkında bana her şeyi sorun"):
     if not openai_api_key:
         st.info("Lütfen devam etmek için sol menüden (Sidebar) OpenAI API anahtarınızı girin.")
         st.stop()
@@ -142,7 +127,6 @@ if prompt := st.chat_input("Ask me anything about your projects"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.rerun()
 
-# API Yanıt Mekanizması
 if len(st.session_state["messages"]) > 0 and st.session_state["messages"][-1]["role"] == "user":
     client = OpenAI(api_key=openai_api_key)
     
