@@ -4,10 +4,10 @@ import streamlit as st
 # Sayfa Ayarları
 st.set_page_config(page_title="Ask Our AI Everything", page_icon="✨", layout="centered")
 
-# Yan menüyü ve butonları ana temayla %100 uyumlu yapan güncel CSS
+# Her iki temayla tam uyumlu, minimalist ve modern CSS
 st.markdown("""
     <style>
-    /* Üst boşlukları ve genişliği optimize et */
+    /* Üst boşlukları ve genel sayfa genişliğini optimize et */
     .block-container { padding-top: 4rem; max-width: 800px; }
     
     /* Streamlit'in otomatik oluşturduğu sol menüyü gizler */
@@ -33,21 +33,27 @@ st.markdown("""
         border-color: rgba(128, 128, 128, 0.3);
     }
     
-    /* ---- SIDEBAR BUTONUNU TEMAYA UYARLAMA ---- */
-    /* Yan menüdeki butonun arka planını ve çizgilerini sistemle eşitle */
-    section[data-testid="stSidebar"] div.stButton > button {
-        background-color: rgba(255, 255, 255, 0.05) !important;
-        color: inherit !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        text-align: center !important;
-        border-radius: 8px !important;
-        min-height: auto !important;
-        padding: 8px 16px !important;
+    /* ---- MODERN HTML SIDEBAR BUTONU ---- */
+    .custom-sidebar-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        background-color: rgba(128, 128, 128, 0.1); /* Temaya göre otomatik değişen şeffaf gri */
+        color: inherit; /* Temanın yazı rengini doğrudan miras alır */
+        border: 1px solid rgba(128, 128, 128, 0.15);
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        text-decoration: none;
     }
-    /* Yan menü butonu hover efekti */
-    section[data-testid="stSidebar"] div.stButton > button:hover {
-        background-color: rgba(255, 255, 255, 0.1) !important;
-        border-color: rgba(255, 255, 255, 0.2) !important;
+    
+    .custom-sidebar-btn:hover {
+        background-color: rgba(128, 128, 128, 0.18);
+        border-color: rgba(128, 128, 128, 0.3);
     }
     
     /* Başlıkların ortalanması */
@@ -82,8 +88,21 @@ with st.sidebar:
     )
     
     st.markdown("---")
-    if st.button("🔄 Sohbeti Sıfırla", use_container_width=True):
+    
+    # Çok daha modern ve temaya kusursuz oturan HTML Buton Yapısı
+    # Streamlit'in kendi butonlarındaki çakışmayı önlemek için sorgu parametresi (query param) kullanıyoruz
+    st.markdown("""
+        <a href="/?reset=true" target="_self" style="text-decoration: none; color: inherit;">
+            <div class="custom-sidebar-btn">
+                <span>🔄</span> Sohbeti Sıfırla
+            </div>
+        </a>
+    """, unsafe_allow_html=True)
+    
+    # Eğer sıfırlama butonuna tıklandıysa hafızayı temizle ve sayfayı yenile
+    if st.query_params.get("reset") == "true":
         st.session_state["messages"] = []
+        st.query_params.clear()
         st.rerun()
 
 # --- ANA EKRAN TASARIMI ---
