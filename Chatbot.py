@@ -100,6 +100,15 @@ st.markdown("""
     .block-container { padding-top: 4rem; max-width: 800px; }
     [data-testid="stSidebarNav"] { display: none !important; }
     
+    /* Mobil uyumluluk için sütunları alt alta al */
+    @media (max-width: 600px) {
+        [data-testid="column"] {
+            width: 100% !important;
+            flex: 1 1 100% !important;
+        }
+        .metric-container { flex-direction: column; }
+    }
+    
     div.stButton > button {
         background-color: rgba(128, 128, 128, 0.08);
         color: inherit;
@@ -110,38 +119,14 @@ st.markdown("""
         transition: all 0.2s ease;
         text-align: left;
         width: 100%;
-        min-height: 70px;
+        min-height: 80px; /* Biraz yükselttik */
     }
-    div.stButton > button:hover {
-        background-color: rgba(128, 128, 128, 0.15);
-        border-color: rgba(128, 128, 128, 0.3);
-    }
-    section[data-testid="stSidebar"] {
-        background-color: var(--background-color) !important;
-        color: var(--text-color) !important;
-    }
-    div[data-testid="stSidebarUserContent"] div.stButton > button {
-        background-color: rgba(128, 128, 128, 0.08) !important;
-        color: var(--text-color) !important;
-        border: 1px solid rgba(128, 128, 128, 0.2) !important;
-        border-radius: 8px !important;
-        padding: 10px 16px !important;
-        font-size: 14px !important;
-        font-weight: 500 !important;
-        text-align: center !important;
-        width: 100% !important;
-        min-height: auto !important;
-        box-shadow: none !important;
-        transition: all 0.2s ease !important;
-    }
-    div[data-testid="stSidebarUserContent"] div.stButton > button:hover {
-        background-color: rgba(128, 128, 128, 0.15) !important;
-        border-color: rgba(128, 128, 128, 0.4) !important;
-    }
+    
     .centered-title { text-align: center; font-weight: 400; margin-top: 10px; margin-bottom: 40px; }
     
     .metric-container {
         display: flex;
+        flex-wrap: wrap; /* Taşmayı engellemek için */
         gap: 10px;
         margin-bottom: 15px;
     }
@@ -152,6 +137,8 @@ st.markdown("""
         padding: 8px 12px;
         font-size: 13px;
         font-family: monospace;
+        flex: 1; /* Esnek boyutlandırma */
+        min-width: 200px;
     }
     </style>
 """, unsafe_allow_html=True)
