@@ -22,10 +22,10 @@ def metin_on_isleme(ham_metin):
     temiz_kelimeler = []
     for k in kelimeler:
         if k not in turkce_stop_words and len(k) > 1:
-            # ÖNEMLİ: Türkçe ekleri temizlemek için 4 karakterden uzun kelimelerin kökünü alıyoruz.
-            # Böylece "konusu" -> "konu", "projenin" -> "proje" olur ve başarıyla eşleşir. Sayılar korunur.
-            if not k.isdigit() and len(k) > 4:
-                k = k[:4]
+            # OPTİMİZASYON: Kelime kök sınırını 5 yaptık. Böylece "inceleme" -> "incel", "incelermisin" -> "incel"
+            # olur ve hatalı kelime çakışmalarının (false positive) önüne geçilir.
+            if not k.isdigit() and len(k) > 5:
+                k = k[:5]
             temiz_kelimeler.append(k)
             
     return " ".join(temiz_kelimeler)
@@ -34,7 +34,6 @@ def custom_tfidf_vektorize(dokumanlar, soru):
     temiz_dokumanlar = [metin_on_isleme(d) for d in dokumanlar]
     temiz_soru = metin_on_isleme(soru)
     
-    # DÜZELTME: Kelime havuzu SADECE yüklenen dökümanlardan oluşmalı, sorudan değil!
     tüm_kelimeler = set()
     for d in temiz_dokumanlar:
         tüm_kelimeler.update(d.split())
@@ -192,6 +191,13 @@ with st.sidebar:
                 
         except Exception as e:
             st.error(f"Döküman okunurken hata oluştu: {str(e)}")
+    else:
+        # DÜZELTME 1: Eğer kullanıcı PDF dosyasını silerse hafızayı ve modeli temizle
+        if "son_yuklenen_dosya" in st.session_state:
+            del st.session_state["son_yuklenen_dosya"]
+            st.session_state["messages"] = []
+            st.session_state["rag_model"] = RetrievalBasedNLPModel()
+            st.rerun()
             
     st.markdown("---")
     if st.button("🔄 Sohbeti Sıfırla", use_container_width=True):
@@ -234,14 +240,18 @@ else:
             st.chat_message(msg["role"], avatar=avatar).write(msg["content"])
 
 if prompt := st.chat_input("Projeleriniz veya dökümanlarınız hakkında bana her şeyi sorun"):
-    if not openai_api_key:
-        st.info("Lütfen devam etmek için sol menüden (Sidebar) OpenAI API anahtarınızı girin.")
-        st.stop()
-        
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.rerun()
 
 if len(st.session_state["messages"]) > 0 and st.session_state["messages"][-1]["role"] == "user":
+    # DÜZELTME 2: API anahtarı kontrolünü buraya taşıdık. 
+    # Böylece hem chat_input hem de öneri butonları güvenle denetlenir.
+    if not openai_api_key:
+        # Son eklenen kullanıcı mesajını arayüz kilitlenmesin diye siliyoruz
+        st.session_state["messages"].pop()
+        st.info("Lütfen devam etmek için sol menüden (Sidebar) OpenAI API anahtarınızı girin.")
+        st.stop()
+        
     client = OpenAI(api_key=openai_api_key)
     kullanici_sorusu = st.session_state["messages"][-1]["content"]
     
