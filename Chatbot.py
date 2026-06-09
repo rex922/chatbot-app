@@ -5,10 +5,16 @@ import streamlit as st
 from pypdf import PdfReader
 
 def metin_on_isleme(ham_metin):
-    metin = ham_metin.lower()
-    metin = metin.replace('ı', 'i').replace('ğ', 'g').replace('ü', 'u').replace('ş', 's').replace('ö', 'o').replace('ç', 'c')
+    # Türkçe büyük-küçük harf dönüşümünü güvenli hale getirme
+    metin = ham_metin.replace('I', 'ı').replace('İ', 'i').lower()
+    
+    # Türkçe karakterleri normalize etme
+    karakterler = {'ı': 'i', 'ğ': 'g', 'ü': 'u', 'ş': 's', 'ö': 'o', 'ç': 'c'}
+    for kaynak, hedef in karakterler.items():
+        metin = metin.replace(kaynak, hedef)
+        
+    # Noktalama işaretlerini temizle (SAYILARI SİLME işlemini kaldırdık!)
     metin = re.sub(r'[^\w\s]', ' ', metin)
-    metin = re.sub(r'\d+', ' ', metin)
     
     turkce_stop_words = {"ve", "veya", "da", "de", "ile", "bir", "bu", "su", "o", "icin", "en", "pek", "cok", "mi", "mu", "ise", "ki", "yani", "olan"}
     kelimeler = metin.split()
@@ -30,8 +36,8 @@ def custom_tfidf_vektorize(dokumanlar, soru):
         belge_sayisi = sum(1 for d in temiz_dokumanlar if kelime in d.split())
         idf_sozluk[kelime] = math.log((1 + N) / (1 + belge_sayisi)) + 1
 
-    def tfidf_vektor_olustur(metin):
-        kelimeler = metin.split()
+    def tfidf_vektor_olustur(metin_temiz):
+        kelimeler = metin_temiz.split()
         vektor = []
         for kelime in tüm_kelimeler:
             tf = kelimeler.count(kelime)
@@ -79,12 +85,11 @@ class RetrievalBasedNLPModel:
         
         en_iyi_parcalar = []
         for idx, skor in benzerlikler[:en_yakin_k_sayfa]:
-            if skor > 0.001:
-                en_iyi_parcalar.append({
-                    "sayfa_no": idx + 1,
-                    "metin": self.orijinal_sayfalar[idx],
-                    "skor": skor
-                })
+            en_iyi_parcalar.append({
+                "sayfa_no": idx + 1,
+                "metin": self.orijinal_sayfalar[idx],
+                "skor": skor
+            })
                 
         return en_iyi_parcalar
 
@@ -100,6 +105,14 @@ st.markdown("""
     .block-container { padding-top: 4rem; max-width: 800px; }
     [data-testid="stSidebarNav"] { display: none !important; }
     
+    @media (max-width: 600px) {
+        [data-testid="column"] {
+            width: 100% !important;
+            flex: 1 1 100% !important;
+        }
+        .metric-container { flex-direction: column; }
+    }
+    
     div.stButton > button {
         background-color: rgba(128, 128, 128, 0.08);
         color: inherit;
@@ -110,38 +123,14 @@ st.markdown("""
         transition: all 0.2s ease;
         text-align: left;
         width: 100%;
-        min-height: 70px;
+        min-height: 80px;
     }
-    div.stButton > button:hover {
-        background-color: rgba(128, 128, 128, 0.15);
-        border-color: rgba(128, 128, 128, 0.3);
-    }
-    section[data-testid="stSidebar"] {
-        background-color: var(--background-color) !important;
-        color: var(--text-color) !important;
-    }
-    div[data-testid="stSidebarUserContent"] div.stButton > button {
-        background-color: rgba(128, 128, 128, 0.08) !important;
-        color: var(--text-color) !important;
-        border: 1px solid rgba(128, 128, 128, 0.2) !important;
-        border-radius: 8px !important;
-        padding: 10px 16px !important;
-        font-size: 14px !important;
-        font-weight: 500 !important;
-        text-align: center !important;
-        width: 100% !important;
-        min-height: auto !important;
-        box-shadow: none !important;
-        transition: all 0.2s ease !important;
-    }
-    div[data-testid="stSidebarUserContent"] div.stButton > button:hover {
-        background-color: rgba(128, 128, 128, 0.15) !important;
-        border-color: rgba(128, 128, 128, 0.4) !important;
-    }
+    
     .centered-title { text-align: center; font-weight: 400; margin-top: 10px; margin-bottom: 40px; }
     
     .metric-container {
         display: flex;
+        flex-wrap: wrap;
         gap: 10px;
         margin-bottom: 15px;
     }
@@ -152,6 +141,8 @@ st.markdown("""
         padding: 8px 12px;
         font-size: 13px;
         font-family: monospace;
+        flex: 1;
+        min-width: 200px;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -254,10 +245,12 @@ if len(st.session_state["messages"]) > 0 and st.session_state["messages"][-1]["r
     api_mesajlari = []
     if baglam:
         sistem_talimati = (
-            "Sen yüklenen dökümanlar üzerinde analiz yapan yapay zekâ tabanlı bir asistansın. "
-            "Sana aşağıda verilen döküman içeriğini (Bağlam) kılavuz alarak kullanıcının sorusunu yanıtla. "
-            "Eğer soru dökümanla ilgiliyse dökümana sadık kal ve gerekirse hangi sayfadan aldığını belirt.\n\n"
-            f"--- BAĞLAM ---\n{baglam}"
+            "Sen yüklenen kaynak dökümanlar üzerinde analiz yapan yapay zekâ tabanlı bir asistansın. "
+            "Kullanıcı şu anda sisteme bir belge (PDF) yükledi ve seninle bu belge üzerine konuşuyor. "
+            "Kullanıcı 'document9', 'bu döküman', 'dosya' veya 'pdf' dediğinde, sana aşağıda sunulan döküman içeriğini kastetmektedir. "
+            "Sana aşağıda sunulan döküman içeriğini (Bağlam) kılavuz alarak kullanıcının sorusunu yanıtla. "
+            "Metinlerin içinde 'document9' kelimesi geçmese bile, aşağıdaki bağlamın bu dökümanın gerçek içeriği olduğunu bilerek cevap ver.\n\n"
+            f"--- BAĞLAM (YÜKLENEN DÖKÜMAN İÇERİĞİ) ---\n{baglam}"
         )
         api_mesajlari.append({"role": "system", "content": sistem_talimati})
     else:
