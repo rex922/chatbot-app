@@ -5,15 +5,15 @@ import streamlit as st
 from pypdf import PdfReader
 
 def metin_on_isleme(ham_metin):
-    # Türkçe büyük-küçük harf dönüşümünü güvenli hale getirme
+    
     metin = ham_metin.replace('I', 'ı').replace('İ', 'i').lower()
     
-    # Türkçe karakterleri normalize etme
+    
     karakterler = {'ı': 'i', 'ğ': 'g', 'ü': 'u', 'ş': 's', 'ö': 'o', 'ç': 'c'}
     for kaynak, hedef in karakterler.items():
         metin = metin.replace(kaynak, hedef)
         
-    # Noktalama işaretlerini temizle
+  
     metin = re.sub(r'[^\w\s]', ' ', metin)
     
     turkce_stop_words = {"ve", "veya", "da", "de", "ile", "bir", "bu", "su", "o", "icin", "en", "pek", "cok", "mi", "mu", "ise", "ki", "yani", "olan"}
@@ -192,7 +192,7 @@ with st.sidebar:
         except Exception as e:
             st.error(f"Döküman okunurken hata oluştu: {str(e)}")
     else:
-        # DÜZELTME 1: Eğer kullanıcı PDF dosyasını silerse hafızayı ve modeli temizle
+        
         if "son_yuklenen_dosya" in st.session_state:
             del st.session_state["son_yuklenen_dosya"]
             st.session_state["messages"] = []
@@ -244,10 +244,9 @@ if prompt := st.chat_input("Projeleriniz veya dökümanlarınız hakkında bana 
     st.rerun()
 
 if len(st.session_state["messages"]) > 0 and st.session_state["messages"][-1]["role"] == "user":
-    # DÜZELTME 2: API anahtarı kontrolünü buraya taşıdık. 
-    # Böylece hem chat_input hem de öneri butonları güvenle denetlenir.
+   
     if not openai_api_key:
-        # Son eklenen kullanıcı mesajını arayüz kilitlenmesin diye siliyoruz
+        
         st.session_state["messages"].pop()
         st.info("Lütfen devam etmek için sol menüden (Sidebar) OpenAI API anahtarınızı girin.")
         st.stop()
