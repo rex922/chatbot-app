@@ -5,40 +5,55 @@ import streamlit as st
 from pypdf import PdfReader
 
 def metin_on_isleme(ham_metin):
-    metin = ham_metin.lower()
-    metin = metin.replace('ı', 'i').replace('ğ', 'g').replace('ü', 'u').replace('ş', 's').replace('ö', 'o').replace('ç', 'c')
-    metin = metin.replace('ı', 'i').replace('ğ', 'g').replace('ü', 'u').replace('ş', 's').replace('ö', 'o').replace('ç', 'c')
+    # Türkçe büyük I harfinin i'ye doğru dönüşmesi için güvenli yöntem
+    metin = ham_metin.replace('I', 'ı').replace('İ', 'i').lower()
+    
+    # Türkçe karakterleri İngilizce karşılıklarına dönüştürme
+    karakterler = {'ı': 'i', 'ğ': 'g', 'ü': 'u', 'ş': 's', 'ö': 'o', 'ç': 'c'}
+    for kaynak, hedef in karakterler.items():
+        metin = metin.replace(kaynak, hedef)
+        
+    # Noktalama işaretlerini ve sayıları temizleme
     metin = re.sub(r'[^\w\s]', ' ', metin)
     metin = re.sub(r'\d+', ' ', metin)
     
+    # Stop words temizliği
     turkce_stop_words = {"ve", "veya", "da", "de", "ile", "bir", "bu", "su", "o", "icin", "en", "pek", "cok", "mi", "mu", "ise", "ki", "yani", "olan"}
     kelimeler = metin.split()
     temiz_kelimeler = [k for k in kelimeler if k not in turkce_stop_words and len(k) > 1]
     return " ".join(temiz_kelimeler)
 
 def custom_tfidf_vektorize(dokumanlar, soru):
+    # Tüm dokümanları ve soruyu ön işlemeden geçiriyoruz
     temiz_dokumanlar = [metin_on_isleme(d) for d in dokumanlar]
     temiz_soru = metin_on_isleme(soru)
     
-    tüm_kelimeler = set(temiz_soru.split())
+    # Kelime havuzunu sadece dökümanlardan ve sorudan benzersiz şekilde topluyoruz
+    tüm_kelimeler = set()
+    if temiz_soru:
+        tüm_kelimeler.update(temiz_soru.split())
     for d in temiz_dokumanlar:
         tüm_kelimeler.update(d.split())
     tüm_kelimeler = sorted(list(tüm_kelimeler))
     
     N = len(temiz_dokumanlar)
     idf_sozluk = {}
+    
+    # IDF hesaplanırken temizlenmiş döküman listesi (temiz_dokumanlar) kullanılmalı
     for kelime in tüm_kelimeler:
         belge_sayisi = sum(1 for d in temiz_dokumanlar if kelime in d.split())
+        # Sıfıra bölünme hatasını engellemek için smooth_idf mantığı
         idf_sozluk[kelime] = math.log((1 + N) / (1 + belge_sayisi)) + 1
 
-    def tfidf_vektor_olustur(metin):
-        kelimeler = metin.split()
+    def tfidf_vektor_olustur(metin_temiz):
+        kelimeler = metin_temiz.split()
         vektor = []
         for kelime in tüm_kelimeler:
             tf = kelimeler.count(kelime)
             vektor.append(tf * idf_sozluk[kelime])
         return vektor
 
+    # Vektörleri oluştururken ön işlenmiş metinleri gönderiyoruz
     dokuman_vektorleri = [tfidf_vektor_olustur(d) for d in temiz_dokumanlar]
     soru_vektoru = tfidf_vektor_olustur(temiz_soru)
     
@@ -62,6 +77,7 @@ class RetrievalBasedNLPModel:
         self.orijinal_sayfalar = ham_sayfalar
         self.dokumanlar = ham_sayfalar
         if ham_sayfalar:
+            # Boş string yerine genel bir kelime havuzu matrisi hazırlığı
             _, _, kelimeler = custom_tfidf_vektorize(ham_sayfalar, "")
             self.kelime_havuzu = kelimeler
 
@@ -88,6 +104,7 @@ class RetrievalBasedNLPModel:
                 
         return en_iyi_parcalar
 
+# Geri kalan Streamlit arayüz kodları (Aynen kalabilir)
 st.set_page_config(
     page_title="Yapay Zekamıza Her Şeyi Sorun", 
     page_icon="✨", 
@@ -100,7 +117,6 @@ st.markdown("""
     .block-container { padding-top: 4rem; max-width: 800px; }
     [data-testid="stSidebarNav"] { display: none !important; }
     
-    /* Mobil uyumluluk için sütunları alt alta al */
     @media (max-width: 600px) {
         [data-testid="column"] {
             width: 100% !important;
@@ -119,14 +135,14 @@ st.markdown("""
         transition: all 0.2s ease;
         text-align: left;
         width: 100%;
-        min-height: 80px; /* Biraz yükselttik */
+        min-height: 80px;
     }
     
     .centered-title { text-align: center; font-weight: 400; margin-top: 10px; margin-bottom: 40px; }
     
     .metric-container {
         display: flex;
-        flex-wrap: wrap; /* Taşmayı engellemek için */
+        flex-wrap: wrap;
         gap: 10px;
         margin-bottom: 15px;
     }
@@ -137,7 +153,7 @@ st.markdown("""
         padding: 8px 12px;
         font-size: 13px;
         font-family: monospace;
-        flex: 1; /* Esnek boyutlandırma */
+        flex: 1;
         min-width: 200px;
     }
     </style>
@@ -264,7 +280,7 @@ if len(st.session_state["messages"]) > 0 and st.session_state["messages"][-1]["r
                 model=model_choice,
                 messages=api_mesajlari,
                 stream=True,
-            )
+                )
             for chunk in stream:
                 if chunk.choices[0].delta.content is not None:
                     full_response += chunk.choices[0].delta.content
