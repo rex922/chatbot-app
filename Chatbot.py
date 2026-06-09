@@ -13,19 +13,29 @@ def metin_on_isleme(ham_metin):
     for kaynak, hedef in karakterler.items():
         metin = metin.replace(kaynak, hedef)
         
-    # Noktalama işaretlerini temizle (SAYILARI SİLME işlemini kaldırdık!)
+    # Noktalama işaretlerini temizle
     metin = re.sub(r'[^\w\s]', ' ', metin)
     
     turkce_stop_words = {"ve", "veya", "da", "de", "ile", "bir", "bu", "su", "o", "icin", "en", "pek", "cok", "mi", "mu", "ise", "ki", "yani", "olan"}
     kelimeler = metin.split()
-    temiz_kelimeler = [k for k in kelimeler if k not in turkce_stop_words and len(k) > 1]
+    
+    temiz_kelimeler = []
+    for k in kelimeler:
+        if k not in turkce_stop_words and len(k) > 1:
+            # ÖNEMLİ: Türkçe ekleri temizlemek için 4 karakterden uzun kelimelerin kökünü alıyoruz.
+            # Böylece "konusu" -> "konu", "projenin" -> "proje" olur ve başarıyla eşleşir. Sayılar korunur.
+            if not k.isdigit() and len(k) > 4:
+                k = k[:4]
+            temiz_kelimeler.append(k)
+            
     return " ".join(temiz_kelimeler)
 
 def custom_tfidf_vektorize(dokumanlar, soru):
     temiz_dokumanlar = [metin_on_isleme(d) for d in dokumanlar]
     temiz_soru = metin_on_isleme(soru)
     
-    tüm_kelimeler = set(temiz_soru.split())
+    # DÜZELTME: Kelime havuzu SADECE yüklenen dökümanlardan oluşmalı, sorudan değil!
+    tüm_kelimeler = set()
     for d in temiz_dokumanlar:
         tüm_kelimeler.update(d.split())
     tüm_kelimeler = sorted(list(tüm_kelimeler))
