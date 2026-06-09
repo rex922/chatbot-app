@@ -22,8 +22,7 @@ def metin_on_isleme(ham_metin):
     temiz_kelimeler = []
     for k in kelimeler:
         if k not in turkce_stop_words and len(k) > 1:
-            # OPTİMİZASYON: Kelime kök sınırını 5 yaptık. Böylece "inceleme" -> "incel", "incelermisin" -> "incel"
-            # olur ve hatalı kelime çakışmalarının (false positive) önüne geçilir.
+
             if not k.isdigit() and len(k) > 5:
                 k = k[:5]
             temiz_kelimeler.append(k)
