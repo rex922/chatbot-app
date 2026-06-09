@@ -7,7 +7,6 @@ from pypdf import PdfReader
 def metin_on_isleme(ham_metin):
     metin = ham_metin.lower()
     metin = metin.replace('ı', 'i').replace('ğ', 'g').replace('ü', 'u').replace('ş', 's').replace('ö', 'o').replace('ç', 'c')
-    metin = metin.replace('ı', 'i').replace('ğ', 'g').replace('ü', 'u').replace('ş', 's').replace('ö', 'o').replace('ç', 'c')
     metin = re.sub(r'[^\w\s]', ' ', metin)
     metin = re.sub(r'\d+', ' ', metin)
     
@@ -80,11 +79,12 @@ class RetrievalBasedNLPModel:
         
         en_iyi_parcalar = []
         for idx, skor in benzerlikler[:en_yakin_k_sayfa]:
-            en_iyi_parcalar.append({
-                "sayfa_no": idx + 1,
-                "metin": self.orijinal_sayfalar[idx],
-                "skor": skor
-            })
+            if skor > 0.001:
+                en_iyi_parcalar.append({
+                    "sayfa_no": idx + 1,
+                    "metin": self.orijinal_sayfalar[idx],
+                    "skor": skor
+                })
                 
         return en_iyi_parcalar
 
@@ -254,10 +254,9 @@ if len(st.session_state["messages"]) > 0 and st.session_state["messages"][-1]["r
     api_mesajlari = []
     if baglam:
         sistem_talimati = (
-            "Sen yüklenen kaynak dökümanlar üzerinde analiz yapan yapay zekâ tabanlı bir asistansın. "
-            "Sana aşağıda sunulan döküman içeriğini (Bağlam) kılavuz alarak kullanıcının sorusunu yanıtla. "
-            "Kullanıcının sorduğu kelimeler (Örneğin: rubrik, ödev vb.) dökümandaki başlıklarla eşleşmektedir. "
-            "Lütfen Rubik Küpü (oyuncak) ile ilgili hiçbir şeyden bahsetme. Soruyu tamamen sana verilen akademik proje kriterlerine göre cevapla.\n\n"
+            "Sen yüklenen dökümanlar üzerinde analiz yapan yapay zekâ tabanlı bir asistansın. "
+            "Sana aşağıda verilen döküman içeriğini (Bağlam) kılavuz alarak kullanıcının sorusunu yanıtla. "
+            "Eğer soru dökümanla ilgiliyse dökümana sadık kal ve gerekirse hangi sayfadan aldığını belirt.\n\n"
             f"--- BAĞLAM ---\n{baglam}"
         )
         api_mesajlari.append({"role": "system", "content": sistem_talimati})
